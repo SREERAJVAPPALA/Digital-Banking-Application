@@ -1,38 +1,87 @@
 package com.wecp.progressive.service;
 
-import java.util.List;
 
+import com.wecp.progressive.entity.Accounts;
+import com.wecp.progressive.exception.AccountNotFoundException;
+import com.wecp.progressive.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.wecp.progressive.entity.Accounts;
-import com.wecp.progressive.repository.AccountRepository;
-import com.wecp.progressive.repository.CustomerRepository;
+import java.sql.SQLException;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 @Service
-public class AccountServiceImplJpa {
-    @Autowired
-    private AccountRepository accountRepository;
+public class AccountServiceImplJpa implements AccountService{
 
-    public List<Accounts> getAllAccounts(){
+    private AccountRepository accountRepository;
+    @Autowired
+    public AccountServiceImplJpa(AccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
+    }
+
+    @Override
+    public List<Accounts> getAllAccounts() throws SQLException {
         return accountRepository.findAll();
     }
 
-    public Accounts getAccountById(int accountId){
-        return accountRepository.findById(accountId).get();
+    @Override
+    public List<Accounts> getAccountsByUser(int customerId) throws SQLException {
+        return accountRepository.getAccountsByCustomerCustomerId(customerId);
     }
 
-    public Integer  addAccount(Accounts accounts){
+    @Override
+    public Accounts getAccountById(int accountId) {
+        Optional<Accounts> accounts = accountRepository.findById(accountId);
+        if (accounts.isPresent()) {
+            return accounts.get();
+        }
+        else {
+            throw new AccountNotFoundException("No accounts found linked with this accountId");
+        }
+    }
+
+    @Override
+    public int addAccount(Accounts accounts) {
+        return accountRepository.save(accounts).getAccountId();
+    }
+
+    @Override
+    public void updateAccount(Accounts accounts) {
         accountRepository.save(accounts);
-        return accounts.getAccountId();
     }
 
-    public void updateAccount(int accountId, Accounts accounts){
-        accountRepository.save(accounts);
-    }
-
-    public void deleteAccount(int accountId){
+    @Override
+    public void deleteAccount(int accountId) {
         accountRepository.deleteById(accountId);
     }
-    
+
+    @Override
+    public List<Accounts> getAllAccountsSortedByBalance() throws SQLException {
+        List<Accounts> sortedAccounts = getAllAccounts();
+        sortedAccounts.sort(Comparator.comparingDouble(Accounts::getBalance)); // Sort by account balance
+        return sortedAccounts;
+    }
+
+    // Do not implement these methods
+    @Override
+    public List<Accounts> getAllAccountsFromArrayList() {
+        return null;
+    }
+
+    @Override
+    public List<Accounts> addAccountToArrayList(Accounts accounts) {
+        return null;
+    }
+
+    @Override
+    public List<Accounts> getAllAccountsSortedByBalanceFromArrayList() {
+        return null;
+    }
+
+    @Override
+    public void emptyArrayList() {
+
+    }
 }
