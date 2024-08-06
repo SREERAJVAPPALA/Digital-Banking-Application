@@ -46,7 +46,7 @@ public class TransactionServiceImplJpa implements TransactionService {
         if (balance < transaction.getAmount() && transaction.getTransactionType().equalsIgnoreCase("debit")) {
             throw new OutOfBalanceException("Transaction amount exceeds the total balance available in the account.");
         }
-        if (transaction.getTransactionType().equalsIgnoreCase("credit")) {
+        if (transaction.getTransactionType().equals("1")) {
             balance = balance + transaction.getAmount();
         }
         else {
